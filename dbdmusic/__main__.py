@@ -21,7 +21,7 @@ class Bot:
 		def lavarun():
 			os.system("java -jar Lavalink.jar")
 		
-		print("Starting processes!")
+		print("Starte den Proccess!")
 		time.sleep(5)
 		print("Running Lavalink.")
 		Thread(target = lavarun).start()
@@ -74,22 +74,22 @@ class Music(commands.Cog):
         should_connect = ctx.command.name in ('play',)
 
         if not ctx.author.voice or not ctx.author.voice.channel:
-            raise commands.CommandInvokeError('Join a voicechannel first.')
+            raise commands.CommandInvokeError('Joine bitte zuerst in ein Voice Channel.')
 
         if not player.is_connected:
             if not should_connect:
-                raise commands.CommandInvokeError('Not connected.')
+                raise commands.CommandInvokeError('Nicht Verbunden.')
 
             permissions = ctx.author.voice.channel.permissions_for(ctx.me)
 
             if not permissions.connect or not permissions.speak:
-                raise commands.CommandInvokeError('I need the `CONNECT` and `SPEAK` permissions.')
+                raise commands.CommandInvokeError('Ich brauche diese Rechte `Connetc` & `Read`.')
 
             player.store('channel', ctx.channel.id)
             await self.connect_to(ctx.guild.id, str(ctx.author.voice.channel.id))
         else:
             if int(player.channel_id) != ctx.author.voice.channel.id:
-                raise commands.CommandInvokeError('You need to be in my voicechannel.')
+                raise commands.CommandInvokeError('Du musst in meinen Voice sein.')
 
     async def track_hook(self, event):
         if isinstance(event, lavalink.events.QueueEndEvent):
@@ -111,7 +111,7 @@ class Music(commands.Cog):
         results = await player.node.get_tracks(query)
 
         if not results or not results['tracks']:
-            return await ctx.send('Nothing found!')
+            return await ctx.send('Nicht Gefunden!')
 
         embed = discord.Embed(color=discord.Color.blurple())
 
@@ -127,11 +127,11 @@ class Music(commands.Cog):
             for track in tracks:
                 player.add(requester=ctx.author.id, track=track)
 
-            embed.title = 'Playlist Enqueued!'
-            embed.description = f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks'
+            embed.title = 'Spiele jetzt:!'
+            embed.description = f'{results["playlistInfo"]["name"]} - {len(tracks)}'
         else:
             track = results['tracks'][0]
-            embed.title = 'Track Enqueued'
+            embed.title = 'Spiele jetzt:'
             embed.description = f'[{track["info"]["title"]}]({track["info"]["uri"]})'
 
             track = lavalink.models.AudioTrack(track, ctx.author.id, recommended=True)
@@ -142,18 +142,18 @@ class Music(commands.Cog):
         if not player.is_playing:
             await player.play()
 
-    @commands.command(aliases=['dc'])
+    @commands.command(aliases=['dc', 'leave'])
     async def disconnect(self, ctx):
         """ Disconnects the player from the voice channel and clears its queue. """
         player = self.bot.lavalink.player_manager.get(ctx.guild.id)
 
         if not player.is_connected:
-            return await ctx.send('Not connected.')
+            return await ctx.send('Nicht Verbunden.')
 
         if not ctx.author.voice or (player.is_connected and ctx.author.voice.channel.id != int(player.channel_id)):
-            return await ctx.send('You\'re not in my voicechannel!')
+            return await ctx.send('Du bist nicht in mein Voice.!')
 
         player.queue.clear()
         await player.stop()
         await self.connect_to(ctx.guild.id, None)
-        await ctx.send('*⃣ | Disconnected.')
+        await ctx.send('*⃣ | Habe Verlassen.')
